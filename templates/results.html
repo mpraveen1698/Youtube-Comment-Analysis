@@ -1,0 +1,213 @@
+{% extends "index.html" %}
+{% block navbar %}
+<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup"
+    aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+</button>
+<div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+    <div class="navbar-nav">
+        <a class="nav-item nav-link active" href="#">Home</a>
+        <a class="nav-item nav-link" href="#videoDetailsDiv">Video Details</a>
+        <a class="nav-item nav-link" href="#commentAnalysisDiv">Comment Analysis</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="videoDetailsDiv" class="container-fluid p-4">
+    <div class="text-center">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/YouTube_full-color_icon_%282017%29.svg/1280px-YouTube_full-color_icon_%282017%29.svg.png"
+            width="70" height="50" class="d-inline rounded" alt="" loading="lazy">
+        <h1 class="display-4">Video Details</h1>
+        <hr class="my-4 col-11">
+    </div>
+    <div class="row align-items-center">
+        <div class="col-sm-6 mx-auto">
+            <div class="embed-responsive embed-responsive-16by9">
+                <iframe id="videoPlayer" class="embed-responsive-item" src={{ data.ytURL }}
+                    allow="autoplay; fullscreen"></iframe>
+            </div>
+        </div>
+
+        <div class="w-100 m-2"></div>
+
+        <div class="col-sm-6 mx-auto">
+            <div class="row text-center">
+                <div class="col">
+                    <h4>Views</h4>
+                    <p>{{ data.views }}</p>
+                </div>
+                <div class="col">
+                    <h4>Likes</h4>
+                    <p>{{ data.likes }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div id="commentAnalysisDiv" class="container-fluid p-4">
+    <div class="text-center">
+        <img src="https://icons.iconarchive.com/icons/paomedia/small-n-flat/1024/bubble-icon.png" width="70" height="70"
+            class="d-inline rounded" alt="" loading="lazy">
+        <h1 class="display-4">Comment Analysis</h1>
+        <hr class="my-4 col-11">
+    </div>
+    <div class="col-sm-6 mx-auto" id="plotDiv">
+    </div>
+    <script>
+        a = ""
+        var res = [
+            {
+                x: ['Positive', 'Neutral', 'Negative'],
+                y: ["{{data.Positive}}","{{data.Neutral}}","{{data.Negative}}"],
+                type: 'bar'
+            }
+        ];
+
+        Plotly.newPlot('plotDiv', res);
+    </script>
+    <div class="row">
+        <div class="col">
+            <div class="mx-auto text-center align-items-center" id="posChart">
+                <p class="display-4">Positive Cloud</p>
+            </div>
+        </div>
+        <div class="col">
+            <div class="mx-auto text-center align-items-center" id="neuChart">
+                <p class="display-4">Neutral Cloud</p>
+            </div>
+        </div>
+        <div class="col">
+            <div class="mx-auto text-center align-items-center" id="negChart">
+                <p class="display-4">Negative Cloud</p>
+            </div>
+        </div>
+        <div class="w-100 m-4"></div>
+        <div class="col">
+            <div class="mx-auto text-center align-items-center" id="posTable">
+                <p class="display-4">Positive Comments</p>
+                <table class="table table-hover table-dark">
+                    <thead>
+                        <tr>
+    
+                          <th scope="col">Comments</th>
+                          <th scope="col">Likes</th>
+                          
+                        </tr>
+                      </thead>
+                    {% for key,value in data.Positive5.iterrows() %}
+                    <tr>
+                        <td class="c4">{{ value['originalComments'] }}</td>
+                        <td class="c5">{{ value['like_count'] }}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+        <div class="col">
+            <div class="mx-auto text-center align-items-center" id="neuTable">
+                <p class="display-4">Neutral Comments</p>
+                <table class="table table-hover table-dark">
+                    <thead>
+                        <tr>
+    
+                          <th scope="col">Comments</th>
+                          <th scope="col">Likes</th>
+                          
+                        </tr>
+                      </thead>
+                    {% for key,value in data.Neutral5.iterrows() %}
+                    <tr>
+                        <td class="c4">{{ value['originalComments'] }}</td>
+                        <td class="c5">{{ value['like_count'] }}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+        <div class="col">
+            <div class="mx-auto text-center align-items-center" id="negTable">
+                <p class="display-4">Negative Comments</p>
+                <table class="table table-hover table-dark">
+                    <thead>
+                        <tr>
+    
+                          <th scope="col">Comments</th>
+                          <th scope="col">Likes</th>
+                          
+                        </tr>
+                      </thead>
+                    {% for key,value in data.Negative5.iterrows() %}
+                    <tr>
+                        <td class="c4">{{ value['originalComments'] }}</td>
+                        <td class="c5">{{ value['like_count'] }}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+<div>
+    {% for table in tables %}
+    {{titles[loop.index]}}
+    {{ table|safe }}
+    {% endfor %}
+</div>
+
+<script>
+    ZC.LICENSE = ["569d52cefae586f634c54f86dc99e6a9", "b55b025e438fa8a98e32482b5f768ff5"];
+    zingchart.MODULESDIR = 'https://cdn.zingchart.com/modules/';
+
+    function word_cloud(comments, chart_id) {
+        var myConfig = {
+            type: 'wordcloud',
+            options: {
+                text: comments,
+                minLength: 5,
+                ignore: [">", "br", "because", "could", "don’t", "people", "That’s", "that’s", "Their", "their", "there", "these", "thing", "those", "through", "We’re", "we’re", "where", "would", "without", "likesbr", "https", "youtu", "channel", "video", "youtube", "still"],
+                maxItems: 50,
+                aspect: 'spiral',
+                rotate: true,
+                colorType: 'palette',
+                palette: ['#D32F2F', '#5D4037', '#1976D2', '#E53935', '#6D4C41', '#1E88E5', '#F44336', '#795548', '#2196F3', '#EF5350', '#8D6E63', '#42A5F5'],
+
+                style: {
+                    fontFamily: 'Crete Round',
+
+                    hoverState: {
+                        backgroundColor: '#D32F2F',
+                        borderRadius: 2,
+                        fontColor: 'white'
+                    },
+                    tooltip: {
+                        text: '%text: %hits',
+                        visible: true,
+                        alpha: 0.9,
+                        backgroundColor: '#1976D2',
+                        borderRadius: 2,
+                        borderColor: 'none',
+                        fontColor: 'white',
+                        fontFamily: 'Georgia',
+                        textAlpha: 1
+                    }
+                }
+            },
+        };
+
+        zingchart.render({
+            id: chart_id,
+            data: myConfig,
+            height: 400,
+            width: '100%'
+        });
+    }
+
+    word_cloud("{{data.PosComments}}", "posChart")
+    word_cloud("{{ data.NegComments }}", "negChart")
+    word_cloud("{{ data.NeutComments }}", "neuChart")
+</script>
+{% endblock %}
