@@ -24,9 +24,19 @@ def get_comments_again():
     print(ytURL)
     data = dict()
     if ytURL!="":
-        video_id = ytURL.split("=")[1]
-        ytURL = "https://www.youtube.com/embed/"+video_id
-        views, likes, dislikes, comments_df  = youtube_scrapper.main(video_id)
+        try:
+            video_id = ytURL.split("=")[1]
+            ytURL = "https://www.youtube.com/embed/"+video_id
+            views, likes, dislikes, comments_df  = youtube_scrapper.main(video_id)
+        except Exception as e:
+            print(f"Error fetching YouTube data: {str(e)}")
+            # Return error page with meaningful message
+            data = {"ytURL":"",
+                "views": "",
+                "likes": "",
+                "dislikes": "",
+                "error": f"Failed to fetch YouTube data: {str(e)}"}
+            return render_template("error.html", data=data)
         data = {"ytURL":ytURL,
             "views": views,
             "likes": likes,

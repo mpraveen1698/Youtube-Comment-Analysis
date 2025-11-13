@@ -1,7 +1,12 @@
 import os
+import socket
+import time
 
 import googleapiclient.discovery
 import pandas as pd
+
+# Set default socket timeout to 60 seconds
+socket.setdefaulttimeout(60)
 
 
 def get_statistics_views(youtube, video_id, token=""):
@@ -70,8 +75,32 @@ def main(video_id):
     api_version = "v3"
     DEVELOPER_KEY = "AIzaSyAaEMuw_JogB-rarI2WvODzKYqwcRZC9vs"
 
-    youtube = googleapiclient.discovery.build(
-        api_service_name, api_version, developerKey=DEVELOPER_KEY)
+    # Build YouTube API client with increased timeout and retry logic
+    import httplib2
+    
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            print(f"Attempting to connect to YouTube API (attempt {attempt + 1}/{max_retries})...")
+            http = httplib2.Http(timeout=60)  # 60 second timeout
+            
+            youtube = googleapiclient.discovery.build(
+                api_service_name, api_version, developerKey=DEVELOPER_KEY, 
+                http=http, cache_discovery=False)
+            
+            print("Successfully connected to YouTube API!")
+            break
+        except socket.timeout:
+            print(f"Connection timeout on attempt {attempt + 1}")
+            if attempt < max_retries - 1:
+                wait_time = (attempt + 1) * 2
+                print(f"Retrying in {wait_time} seconds...")
+                time.sleep(wait_time)
+            else:
+                raise Exception("Failed to connect to YouTube API after multiple attempts. Please check your internet connection.")
+        except Exception as e:
+            print(f"Error connecting to YouTube API: {str(e)}")
+            raise
 
     views, likes, dislikes = get_statistics_views(youtube, video_id)
     
